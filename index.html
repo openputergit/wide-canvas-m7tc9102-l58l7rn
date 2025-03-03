@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fashion Recommender</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+        .outfit-card:hover {
+            transform: translateY(-5px);
+            transition: transform 0.3s ease;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <nav class="bg-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <h1 class="text-2xl font-bold text-teal-600">StyleAI</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button id="preferences-btn" class="bg-teal-600 text-white px-4 py-2 rounded-lg hover:bg-teal-700">
+                        Set Preferences
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div id="preferences-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center">
+            <div class="bg-white p-8 rounded-lg w-full max-w-md">
+                <h2 class="text-xl font-semibold mb-4">Your Style Preferences</h2>
+                <form id="preferences-form">
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Style</label>
+                            <select class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2" name="style">
+                                <option value="casual">Casual</option>
+                                <option value="formal">Formal</option>
+                                <option value="streetwear">Streetwear</option>
+                                <option value="bohemian">Bohemian</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Color Preference</label>
+                            <select class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2" name="color">
+                                <option value="neutral">Neutral</option>
+                                <option value="bright">Bright</option>
+                                <option value="pastel">Pastel</option>
+                                <option value="dark">Dark</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Occasion</label>
+                            <select class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2" name="occasion">
+                                <option value="everyday">Everyday</option>
+                                <option value="work">Work</option>
+                                <option value="party">Party</option>
+                                <option value="vacation">Vacation</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mt-6 flex justify-end space-x-3">
+                        <button type="button" class="px-4 py-2 border rounded-md hover:bg-gray-50" onclick="closePreferences()">
+                            Cancel
+                        </button>
+                        <button type="submit" class="px-4 py-2 bg-teal-600 text-white rounded-md hover:bg-teal-700">
+                            Save Preferences
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="outfits-container">
+            <!-- Outfit cards will be dynamically inserted here -->
+        </div>
+
+        <div id="loading" class="hidden text-center py-8">
+            <div class="inline-flex items-center px-4 py-2 font-semibold leading-6 text-sm shadow rounded-md text-white bg-teal-600 transition ease-in-out duration-150 cursor-not-allowed">
+                <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Generating recommendations...
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Simulated outfit data (in a real application, this would come from a ML model)
+        const outfitData = {
+            casual: {
+                neutral: {
+                    everyday: [
+                        { image: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800', description: 'White t-shirt, light wash jeans, and sneakers' },
+                        { image: 'https://images.unsplash.com/photo-1434389677669-e08b4cac3105?w=800', description: 'Beige sweater, black pants, and boots' }
+                    ],
+                    work: [
+                        { image: 'https://images.unsplash.com/photo-1598554747436-c9293d6a70b4?w=800', description: 'Gray blazer, white shirt, and black pants' }
+                    ]
+                },
+                bright: {
+                    party: [
+                        { image: 'https://images.unsplash.com/photo-1485230895905-ec40ba36b9bc?w=800', description: 'Red dress and gold accessories' }
+                    ]
+                }
+            }
+        };
+
+        document.getElementById('preferences-btn').addEventListener('click', showPreferences);
+        document.getElementById('preferences-form').addEventListener('submit', handlePreferences);
+
+        function showPreferences() {
+            document.getElementById('preferences-modal').classList.remove('hidden');
+        }
+
+        function closePreferences() {
+            document.getElementById('preferences-modal').classList.add('hidden');
+        }
+
+        function handlePreferences(e) {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const preferences = Object.fromEntries(formData);
+            
+            // Show loading state
+            document.getElementById('loading').classList.remove('hidden');
+            document.getElementById('preferences-modal').classList.add('hidden');
+
+            // Simulate API call delay
+            setTimeout(() => {
+                generateOutfitRecommendations(preferences);
+                document.getElementById('loading').classList.add('hidden');
+            }, 1500);
+        }
+
+        function generateOutfitRecommendations(preferences) {
+            const container = document.getElementById('outfits-container');
+            container.innerHTML = '';
+
+            // In a real application, this would use ML to generate recommendations
+            // For now, we'll use our sample data
+            const outfits = outfitData?.casual?.neutral?.everyday || [];
+            
+            outfits.forEach(outfit => {
+                const card = document.createElement('div');
+                card.className = 'outfit-card bg-white rounded-lg shadow-md overflow-hidden';
+                card.innerHTML = `
+                    <img src="${outfit.image}" alt="Outfit" class="w-full h-64 object-cover">
+                    <div class="p-4">
+                        <p class="text-gray-800 font-medium">${outfit.description}</p>
+                        <div class="mt-4 flex justify-between items-center">
+                            <button class="text-teal-600 hover:text-teal-700">
+                                <i class="bi bi-heart text-xl"></i>
+                            </button>
+                            <button class="bg-teal-600 text-white px-4 py-2 rounded-lg hover:bg-teal-700">
+                                Shop Now
+                            </button>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // Initialize with some default recommendations
+        generateOutfitRecommendations({ style: 'casual', color: 'neutral', occasion: 'everyday' });
+    </script>
+<script>document.body.addEventListener('wheel', e => { if (!e.ctrlKey) return; e.preventDefault(); return }, { passive: false })</script>
+	</body>
+</html>
